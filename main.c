@@ -236,11 +236,18 @@ main(int argc, char **argv) {
 		return 1;
 	width = height = MIN(wa.width, wa.height);
 	
+	// https://tronche.com/gui/x/xlib/graphics/drawing/
 	//~ if (! XLookupColor(dpy, colormap, ""))
 	
-	
-	//~ white = WhitePixel(dpy, screen);
-	//~ black = BlackPixel(dpy, screen);
+	//~ XColor xcolour;
+
+	//~ xcolour.red = 32000; xcolour.green = 65000; xcolour.blue = 32000;
+	//~ xcolour.flags = DoRed | DoGreen | DoBlue;
+	//~ XAllocColor(d, cmap, &xcolour);
+
+	//~ XSetForeground(d, gc, xcolour.pixel);
+	//~ XFillRectangle(d, w, gc, 0, 0, winatt.width, 30);
+	//~ XFlush(d);
 	
 	/* create window */
 	win = XCreateSimpleWindow(dpy, root, 0, 0, width, height, 0, 0, 0x708090);
