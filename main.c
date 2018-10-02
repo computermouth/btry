@@ -3,7 +3,7 @@
 #include <string.h>
 #include <unistd.h>
 
-#include "valid_colors.h"
+#include "global.h"
 
 #define MIN(A, B)               ((A) < (B) ? (A) : (B))
 
