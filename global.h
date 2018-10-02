@@ -6,7 +6,7 @@ char * bg_discharge = "dark red";
 char * fg_charge    = "white";
 char * fg_discharge = "white";
 
-const char * valid_colors[] = {
+const char * x_colors[] = {
 	"alice blue",
 	"antique white",
 	"aqua",

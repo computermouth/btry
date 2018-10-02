@@ -66,12 +66,12 @@ send_systray_message(Display* dpy, long message, long data1, long data2, long da
 void print_colors(){
 	
 	int i;
-	size_t len = (sizeof (valid_colors) / sizeof (const char *));
+	size_t len = (sizeof (x_colors) / sizeof (const char *));
 	
 	printf("\nColors:\n\n");
 	
 	for (i = 0; i < len; i++ )
-		printf("  '%s'\n", valid_colors[i]);
+		printf("  '%s'\n", x_colors[i]);
 	
 	printf("\n");
 	
@@ -84,15 +84,29 @@ btry v0.1 (20180101) system tray battery monitor\n\
 \n\
 Usage: %s [-hc] [-b COLOR] [-f COLOR] [-B COLOR] [-F COLOR]\n\
 \n\
-  -h --help       print this dialog\n\
-  -c --colors     print all valid color names\n\
-  -b --bg-charge  background color while charging\n\
-  -f --fg-charge  foreground color while charging\n\
-  -B --bg-discharge background color while discharging\n\
-  -F --fg-discharge foreground color while discharging\n\
+  -h --help          print this dialog\n\
+  -c --colors        print all valid color names\n\
+  -b --bg-charge     background color while charging\n\
+  -f --fg-charge     foreground color while charging\n\
+  -B --bg-discharge  background color while discharging\n\
+  -F --fg-discharge  foreground color while discharging\n\
 \n",
 	bin);
 	
+}
+
+int validate_color(char * color){
+	
+	int i;
+	size_t len = (sizeof (x_colors) / sizeof (const char *));
+	
+	for (i = 0; i < len; i++ ) {
+		
+		if ( ! strcmp(x_colors[i], color) )
+			return 0;
+	}
+	
+	return 1;
 }
 
 int parse_args(int argc, char **argv){
@@ -105,6 +119,29 @@ int parse_args(int argc, char **argv){
 			return 1;
 		} else if ( ! strcmp(argv[i], "-c") || ! strcmp(argv[i], "--colors") ) {
 			print_colors();
+			return 1;
+		} else if ( ! strcmp(argv[i], "-b") || ! strcmp(argv[i], "--bg-charge") ) {
+			
+			// ensure required argument
+			if (argc == i + 1){
+				printf("E: %s requires argument [COLOR]\n", argv[i]);
+				print_usage(argv[0]);
+				return 1;
+			}
+			
+			// fail if flag wasn't passed a real color
+			if (validate_color(argv[i + 1])){
+				
+				printf("E: invalid color '%s'\n", argv[i]);
+				print_colors();
+				return 1;
+			}
+			
+			i++;
+			continue;
+		} else {
+			printf("E: unrecognized flag '%s'\n", argv[i]);
+			print_usage(argv[0]);
 			return 1;
 		}
 		
@@ -125,10 +162,11 @@ main(int argc, char **argv) {
     Window root, win;
     int rc;
     
-    if (argc > 1)
-		parse_args(argc, argv);
-	
-    return 0;
+    if (argc > 1) // no args -> defaults
+		rc = parse_args(argc, argv);
+		
+	if (rc) // help or colors
+		return 0;
 
     /* init */
     if (!(dpy=XOpenDisplay(NULL)))
