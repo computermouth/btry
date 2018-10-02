@@ -1,10 +1,17 @@
 
+typedef struct {
+	int bg_charge;
+	int bg_discharge;
+	int fg_charge;
+	int fg_discharge;
+} default_colors;
 
-    
-char * bg_charge    = "dark green";
-char * bg_discharge = "dark red";
-char * fg_charge    = "white";
-char * fg_discharge = "white";
+#define BGC 0 // dark green
+#define BGD 1 // dark red
+#define FGC 2 // white
+#define FGD 3 // white
+
+int d_colors[] = { 25, 31, 141, 141 };
 
 const char * x_colors[] = {
 	"alice blue",

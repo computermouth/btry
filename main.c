@@ -71,7 +71,7 @@ void print_colors(){
 	printf("\nColors:\n\n");
 	
 	for (i = 0; i < len; i++ )
-		printf("  '%s'\n", x_colors[i]);
+		printf("  %d '%s'\n", i, x_colors[i]);
 	
 	printf("\n");
 	
@@ -95,15 +95,17 @@ Usage: %s [-hc] [-b COLOR] [-f COLOR] [-B COLOR] [-F COLOR]\n\
 	
 }
 
-int validate_color(char * color){
+int validate_color(char * color, int c_index){
 	
 	int i;
 	size_t len = (sizeof (x_colors) / sizeof (const char *));
 	
 	for (i = 0; i < len; i++ ) {
 		
-		if ( ! strcmp(x_colors[i], color) )
+		if ( ! strcmp(x_colors[i], color) ){
+			d_colors[c_index] = i;
 			return 0;
+		}
 	}
 	
 	return 1;
@@ -130,14 +132,71 @@ int parse_args(int argc, char **argv){
 			}
 			
 			// fail if flag wasn't passed a real color
-			if (validate_color(argv[i + 1])){
+			if (validate_color(argv[i + 1], BGC)){
 				
-				printf("E: invalid color '%s'\n", argv[i]);
+				printf("E: invalid color '%s'\n", argv[i + 1]);
 				print_colors();
 				return 1;
 			}
 			
-			i++;
+			i += 1;
+			continue;
+		} else if ( ! strcmp(argv[i], "-f") || ! strcmp(argv[i], "--fg-charge") ) {
+			
+			// ensure required argument
+			if (argc == i + 1){
+				printf("E: %s requires argument [COLOR]\n", argv[i]);
+				print_usage(argv[0]);
+				return 1;
+			}
+			
+			// fail if flag wasn't passed a real color
+			if (validate_color(argv[i + 1], FGC)){
+				
+				printf("E: invalid color '%s'\n", argv[i + 1]);
+				print_colors();
+				return 1;
+			}
+			
+			i += 1;
+			continue;
+		} else if ( ! strcmp(argv[i], "-B") || ! strcmp(argv[i], "--bg-discharge") ) {
+			
+			// ensure required argument
+			if (argc == i + 1){
+				printf("E: %s requires argument [COLOR]\n", argv[i]);
+				print_usage(argv[0]);
+				return 1;
+			}
+			
+			// fail if flag wasn't passed a real color
+			if (validate_color(argv[i + 1], BGD)){
+				
+				printf("E: invalid color '%s'\n", argv[i + 1]);
+				print_colors();
+				return 1;
+			}
+			
+			i += 1;
+			continue;
+		} else if ( ! strcmp(argv[i], "-F") || ! strcmp(argv[i], "--fg-discharge") ) {
+			
+			// ensure required argument
+			if (argc == i + 1){
+				printf("E: %s requires argument [COLOR]\n", argv[i]);
+				print_usage(argv[0]);
+				return 1;
+			}
+			
+			// fail if flag wasn't passed a real color
+			if (validate_color(argv[i + 1], FGD)){
+				
+				printf("E: invalid color '%s'\n", argv[i + 1]);
+				print_colors();
+				return 1;
+			}
+			
+			i += 1;
 			continue;
 		} else {
 			printf("E: unrecognized flag '%s'\n", argv[i]);
