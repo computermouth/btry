@@ -239,6 +239,9 @@ main(int argc, char **argv) {
 	// https://tronche.com/gui/x/xlib/graphics/drawing/
 	//~ if (! XLookupColor(dpy, colormap, ""))
 	
+	// this is probably wrong
+	// XDrawPoint(dpy, win, root, x, y);
+	
 	//~ XColor xcolour;
 
 	//~ xcolour.red = 32000; xcolour.green = 65000; xcolour.blue = 32000;
