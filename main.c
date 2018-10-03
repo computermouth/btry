@@ -216,10 +216,12 @@ main(int argc, char **argv) {
 	int width, height;
 	XWindowAttributes wa;
 	XEvent ev;
+	//~ Colormap cm;
+	//~ XVisualInfo vi;
 	Display *dpy;
 	int screen;
 	Window root, win;
-	int rc;
+	int rc = 0;
 	
 	if (argc > 1) // no args -> defaults
 		rc = parse_args(argc, argv);
@@ -235,6 +237,29 @@ main(int argc, char **argv) {
 	if(!XGetWindowAttributes(dpy, root, &wa))
 		return 1;
 	width = height = MIN(wa.width, wa.height);
+	
+	XColor final_colors[4];
+	XColor throwaway;
+	
+	//~ vi = XGetVisualInfo(dpy, wa.depth, TrueColor, &vinfo);
+	//~ cm = XCreateColormap(dpy, win, )
+	
+	//~ printf("%d, %d, %d, %d, %d\n", dpy, wa.colormap, x_colors[d_colors[BGC]], throwaway, bgc);
+	
+	return 0;
+	
+	for(int i = 0; i < 4; i++){
+		if(!XLookupColor(dpy, wa.colormap, x_colors[d_colors[i]], &throwaway, final_colors + (i * sizeof(XColor)))){
+			printf("E: failed to look up %s\n", x_colors[d_colors[i]]);
+		}
+	}
+	
+	printf("%x, %x, %x, %x\n", final_colors[0].pixel, final_colors[1].pixel, final_colors[2].pixel, final_colors[3].pixel);
+	
+	//~ if(!XLookupColor(dpy, wa.colormap, x_colors[d_colors[BGC]], &throwaway, &bgc)) {
+		//~ printf("E: failed to look up BGC\n");
+		//~ return 1;
+	//~ }
 	
 	// https://tronche.com/gui/x/xlib/graphics/drawing/
 	//~ if (! XLookupColor(dpy, colormap, ""))
@@ -266,4 +291,6 @@ main(int argc, char **argv) {
 			XNextEvent(dpy, &ev); /* just waiting until we error because window closed */
 		}
 	}
+	
+	// XFreeColormap()
 }
