@@ -245,7 +245,7 @@ main(int argc, char **argv) {
 	int width, height;
 	XWindowAttributes wa;
 	XEvent ev;
-	//~ Colormap cm;
+	Colormap cm;
 	//~ XVisualInfo vi;
 	Display *dpy;
 	//~ GC gc;
@@ -266,6 +266,7 @@ main(int argc, char **argv) {
 		return 1;
 	screen = DefaultScreen(dpy);    
 	root = RootWindow(dpy, screen);
+	cm = XDefaultColormap(dpy, screen);
 	if(!XGetWindowAttributes(dpy, root, &wa))
 		return 1;
 	
@@ -274,22 +275,25 @@ main(int argc, char **argv) {
 	XColor throwaway;
 	
 	throwaway.flags= DoRed | DoGreen | DoBlue;
-	throwaway.red = 65535;
-	throwaway.green = 32767;
-	throwaway.blue = 0;
+	throwaway.red = 0xFFFF;
+	throwaway.green = 0xFFFF;
+	throwaway.blue = 0xFFFF;
 	
-	if(XAllocColor(dpy,wa.colormap,&throwaway) == 0){
+	if(XAllocColor(dpy,cm,&throwaway) == 0){
 		printf("Failed to allocate color\n");
 		return 1;
 	}
 	
 	for(int i = 0; i < 4; i++){
-		if(XAllocColor(dpy, wa.colormap, &(colors[i])) == 0){
+		if(XAllocColor(dpy, cm, &(colors[i])) == 0){
 			printf("Failed to allocate color\n");
 			return 1;
 		}
 	}
 	
+	printf("ta: %lu -- c[0]: %lu\n", throwaway.pixel, colors[0].pixel);
+	
+	//~ win = XCreateSimpleWindow(dpy, root, 0, 0, width, height, 0, 0, colors[0].pixel);
 	win = XCreateSimpleWindow(dpy, root, 0, 0, width, height, 0, 0, colors[0].pixel);
 	
 	//~ gc = XCreateGC(dpy, win, NULL, NULL);
