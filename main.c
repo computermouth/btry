@@ -10,9 +10,6 @@
 #define SYSTEM_TRAY_BEGIN_MESSAGE   1
 #define SYSTEM_TRAY_CANCEL_MESSAGE  2
 
-static int trapped_error_code = 0;
-static int (*old_error_handler) (Display *, XErrorEvent *);
-
 #define BC 0 // dark green
 #define BD 1 // dark red
 #define FC 2 // white
@@ -22,20 +19,10 @@ XColor colors[4];
 
 static int
 error_handler(Display * display, XErrorEvent * error) {
-	trapped_error_code = error->error_code;
+	char buffer[100];
+	XGetErrorText(display, error->error_code, buffer, 100);
+	printf("E: (%d) -- %s \n", error->error_code, buffer);
 	return 0;
-}
-
-void
-trap_errors(void) {
-	trapped_error_code = 0;
-	old_error_handler = XSetErrorHandler(error_handler);
-}
-
-int
-untrap_errors(void) {
-	XSetErrorHandler(old_error_handler);
-	return trapped_error_code;
 }
 
 void
@@ -59,13 +46,9 @@ send_systray_message(Display* dpy, long message, long data1, long data2, long da
 	ev.xclient.data.l[3] = data2;
 	ev.xclient.data.l[4] = data3;
 	
-	trap_errors();
 	XSendEvent(dpy, tray, False, NoEventMask, &ev);
 	XSync(dpy, False);
 	usleep(10000);
-	if (untrap_errors()) {
-		/* Handle errors */
-	}
 }
 
 void init_colors(){
@@ -245,13 +228,14 @@ main(int argc, char **argv) {
 	int width, height;
 	XWindowAttributes wa;
 	XEvent ev;
-	Colormap cm;
 	//~ XVisualInfo vi;
 	Display *dpy;
 	//~ GC gc;
 	int screen;
 	Window root, win;
 	int rc = 0;
+	
+	XSetErrorHandler(error_handler);
 	
 	init_colors();
 	
@@ -266,7 +250,9 @@ main(int argc, char **argv) {
 		return 1;
 	screen = DefaultScreen(dpy);    
 	root = RootWindow(dpy, screen);
-	cm = XDefaultColormap(dpy, screen);
+	
+	XSynchronize(dpy, 1);
+	
 	if(!XGetWindowAttributes(dpy, root, &wa))
 		return 1;
 	
@@ -279,22 +265,37 @@ main(int argc, char **argv) {
 	throwaway.green = 0xFFFF;
 	throwaway.blue = 0xFFFF;
 	
-	if(XAllocColor(dpy,cm,&throwaway) == 0){
+	if(XAllocColor(dpy,wa.colormap,&throwaway) == 0){
 		printf("Failed to allocate color\n");
 		return 1;
 	}
 	
 	for(int i = 0; i < 4; i++){
-		if(XAllocColor(dpy, cm, &(colors[i])) == 0){
+		if(XAllocColor(dpy, wa.colormap, &(colors[i])) == 0){
 			printf("Failed to allocate color\n");
 			return 1;
 		}
 	}
 	
-	printf("ta: %lu -- c[0]: %lu\n", throwaway.pixel, colors[0].pixel);
+	
+	XColor parsed;
+	parsed.flags = 0;
+	
+	int a = XParseColor(dpy, wa.colormap, "#10F", &parsed);
+	printf("a: %d\n", a);
+	
+	printf("parsed flags: %d\n", parsed.pixel);
+	if(XAllocColor(dpy,wa.colormap,&parsed) == 0){
+		printf("Failed to allocate color\n");
+		return 1;
+	}
+	
+	
+	printf("cm: %lx\n", wa.colormap);
+	printf("ta: %lu -- pa: %lu -- c[0]: %lu\n", throwaway.pixel, parsed.pixel, colors[0].pixel);
 	
 	//~ win = XCreateSimpleWindow(dpy, root, 0, 0, width, height, 0, 0, colors[0].pixel);
-	win = XCreateSimpleWindow(dpy, root, 0, 0, width, height, 0, 0, colors[0].pixel);
+	win = XCreateSimpleWindow(dpy, root, 0, 0, width, height, 0, 0, parsed.pixel);
 	
 	//~ gc = XCreateGC(dpy, win, NULL, NULL);
 	
@@ -307,10 +308,14 @@ main(int argc, char **argv) {
 
 	//~ XSetForeground(d, gc, xcolour.pixel);
 	//~ XFillRectangle(d, w, gc, 0, 0, winatt.width, 30);
-	//~ XFlush(d);
+	XFlush(dpy);
+	
+	printf("window created\n");
 	
 	send_systray_message(dpy, SYSTEM_TRAY_REQUEST_DOCK, win, 0, 0); // pass win only once
+	printf("sent message\n");
 	XMapWindow(dpy, win);
+	printf("mapped window\n");
 	
 	XSync(dpy, False);
 	
